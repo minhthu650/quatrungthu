@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trung Thu Heart Show</title>
+  <style>
+    html, body { margin:0; height:100%; overflow:hidden; background:#000; }
+    #app { position:fixed; inset:0; display:none; } /* Ẩn canvas ban đầu */
+    .title { display:none; } /* Ẩn title ban đầu */
+
+    body {
+      background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: twinkle 2s infinite alternate;
+    }
+    @keyframes twinkle { from { opacity: 0.3; } to { opacity: 1; } }
+
+    .title {
+      position: fixed;
+      bottom: 12%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 40px;
+      font-weight: bold;
+      color: gold;
+      text-align: center;
+      text-shadow: 0 0 15px #fff, 0 0 25px gold, 0 0 50px orange;
+      background: linear-gradient(90deg, #ffcc00, #fff, #ff9900, #ffcc00);
+      background-size: 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shine 5s linear infinite, typing 3s steps(50, end) forwards, fadeout 2s 8s forwards;
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 3px solid gold;
+      width: 0;
+      z-index: 10;
+    }
+    @keyframes typing { from { width: 0; } to { width: 100%; } }
+    @keyframes shine { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+    @keyframes fadeout { to { opacity: 0; visibility: hidden; } }
+
+    .heart {
+      position: absolute;
+      animation: fall 6s linear forwards;
+      pointer-events: none;
+      font-size: 20px;
+    }
+    .falling-img {
+      position: absolute;
+      animation: fallRotate 7s linear forwards;
+      pointer-events: none;
+    }
+    @keyframes fall { 0% {transform: translateY(-150px); opacity:1;} 100% {transform: translateY(100vh); opacity:0.5;} }
+    @keyframes fallRotate {
+      0% {transform: translateY(-150px) rotate(0deg); opacity:1;}
+      50% {transform: translateY(50vh) rotate(180deg);}
+      100% {transform: translateY(100vh) rotate(360deg); opacity:0.5;}
+    }
+
+    /* Intro ảnh bánh trung thu */
+    #intro {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    #intro img {
+      max-width: 80%;
+      border-radius: 20px;
+      box-shadow: 0 0 30px gold, 0 0 60px orange;
+      cursor: pointer;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    #intro img {
+  max-width: 250px;   /* giới hạn chiều rộng */
+  max-height: 250px;  /* giới hạn chiều cao */
+  border-radius: 20px;
+  box-shadow: 0 0 30px gold, 0 0 60px orange;
+  cursor: pointer;
+  animation: pulse 2s infinite;
+}
+
+  </style>
+</head>
+<body>
+  <!-- Intro -->
+ <!-- Intro -->
+<div id="intro">
+  <img src="anh/longden-removebg-preview.png" alt="Lồng đèn Trung Thu" id="moonCake">
+</div>
+
+
+  <!-- Canvas -->
+  <canvas id="app"></canvas>
+
+  <!-- Title -->
+  <div class="title">Trung Thu ♥ Chúc Cẩm Tiên luôn dễ thương, xinh đẹp, vui vẻ</div>
+
+  <!-- Nhạc nền -->
+  <audio id="bg-music" loop>
+    <source src="ms/nhac.mp3" type="audio/mp3">
+  </audio>
+
+  <!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script>
+    const intro = document.getElementById("intro");
+    const moonCake = document.getElementById("moonCake");
+    const canvas = document.getElementById("app");
+    const title = document.querySelector(".title");
+    const music = document.getElementById("bg-music");
+
+    // Khi click ảnh bánh trung thu
+    moonCake.addEventListener("click", () => {
+      intro.style.display = "none";   // Ẩn intro
+      canvas.style.display = "block"; // Hiện canvas
+      title.style.display = "block";  // Hiện title
+      if (music.paused) { music.play(); } // phát nhạc
+    });
+
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.z = 6;
+
+    // Background Ngân Hà
+    const loader = new THREE.TextureLoader();
+    loader.load("https://threejs.org/examples/textures/space/starfield.jpg", tex => { scene.background = tex; });
+
+    // HEART 3D
+    const geometry = new THREE.BufferGeometry();
+    const vertices = [], colors = [];
+    for (let i=0;i<6000;i++){
+      let t = Math.PI*2*Math.random();
+      let x = 16*Math.pow(Math.sin(t),3)/10;
+      let y = (13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))/10;
+      let z = (Math.random()-0.5)*0.8;
+      vertices.push(x,y,z);
+      let color = new THREE.Color(`hsl(${Math.random()*40+330},100%,60%)`);
+      colors.push(color.r, color.g, color.b);
+    }
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices,3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors,3));
+    const material = new THREE.PointsMaterial({size:0.05, vertexColors:true, transparent:true, opacity:0.9});
+    const heart = new THREE.Points(geometry, material);
+    scene.add(heart);
+
+    // Halo quanh tim
+    const haloTexture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/lensflare/lensflare0.png");
+    const haloMaterial = new THREE.SpriteMaterial({ map: haloTexture, color: 0xff66cc, transparent:true, opacity:0.3 });
+    const halo = new THREE.Sprite(haloMaterial);
+    halo.scale.set(6,6,1);
+    heart.add(halo);
+
+    // Glow quanh tim
+    const glowTexture = new THREE.TextureLoader().load("https://threejs.org/examples/textures/sprites/glow.png");
+    const glowMat = new THREE.SpriteMaterial({ map: glowTexture, color: 0xff66cc, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending });
+    const glow = new THREE.Sprite(glowMat);
+    glow.scale.set(8,8,1);
+    heart.add(glow);
+
+    function animateGlow(){
+      const s = 8 + Math.sin(Date.now()*0.01)*3;
+      glow.scale.set(s,s,1);
+      glow.material.opacity = 0.4 + 0.5*Math.abs(Math.sin(Date.now()*0.01));
+      requestAnimationFrame(animateGlow);
+    }
+    animateGlow();
+
+    // MOON + LENS FLARE
+    const moonGeo = new THREE.SphereGeometry(1,32,32);
+    const moonMat = new THREE.MeshBasicMaterial({ color: 0xffffcc });
+    const moon = new THREE.Mesh(moonGeo, moonMat);
+    moon.position.set(6, 7, -10); // chỉnh vị trí mặt trăng
+    scene.add(moon);
+
+    const flare0 = new THREE.TextureLoader().load('https://threejs.org/examples/textures/lensflare/lensflare0.png');
+    const flare3 = new THREE.TextureLoader().load('https://threejs.org/examples/textures/lensflare/lensflare3.png');
+    const flareSprite1 = new THREE.Sprite(new THREE.SpriteMaterial({ map: flare0, color: 0xffeeaa, transparent: true, opacity: 0.9 }));
+    flareSprite1.scale.set(5,5,1);
+    moon.add(flareSprite1);
+    const flareSprite2 = new THREE.Sprite(new THREE.SpriteMaterial({ map: flare3, color: 0xffbb55, transparent: true, opacity: 0.6 }));
+    flareSprite2.scale.set(12,12,1);
+    moon.add(flareSprite2);
+
+    // Fireflies
+    const fireflies = [];
+    for(let i=0;i<30;i++){
+      const f = new THREE.Sprite(new THREE.SpriteMaterial({ color: 0xffff99, opacity:0.8 }));
+      f.position.set((Math.random()-0.5)*8, (Math.random()-0.5)*5, (Math.random()-0.5)*5);
+      f.scale.set(0.05,0.05,0.05);
+      scene.add(f);
+      fireflies.push({sprite:f, speed:Math.random()*0.01+0.003});
+    }
+
+    // Fireworks
+    const fireworks = [];
+    function createFirework(levels=2){
+      for(let l=0; l<levels; l++){
+        setTimeout(()=>{
+          const fireworkGeometry = new THREE.BufferGeometry();
+          const fVertices = [], fColors = [];
+          const particleCount = 120;
+          for(let i=0; i<particleCount; i++){
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 1.5 + 0.5;
+            const x = Math.cos(angle) * speed;
+            const y = Math.sin(angle) * speed;
+            const z = (Math.random()-0.5)*1.2;
+            fVertices.push(x,y,z);
+            const arr = ["#ff3333","#ff66ff","#ffff66","#66ccff","#ff9933"];
+            let color = new THREE.Color(arr[Math.floor(Math.random()*arr.length)]);
+            fColors.push(color.r,color.g,color.b);
+          }
+          fireworkGeometry.setAttribute('position', new THREE.Float32BufferAttribute(fVertices,3));
+          fireworkGeometry.setAttribute('color', new THREE.Float32BufferAttribute(fColors,3));
+          const fireworkMaterial = new THREE.PointsMaterial({ size: 0.08, vertexColors: true, transparent: true, opacity: 1 });
+          const firework = new THREE.Points(fireworkGeometry, fireworkMaterial);
+          firework.userData = {life:0};
+          scene.add(firework);
+          fireworks.push(firework);
+        }, l*500);
+      }
+    }
+    setInterval(()=>createFirework(3), 3000);
+
+    // Clouds
+    const cloudTexture = new THREE.TextureLoader().load("https://i.ibb.co/6X1TLPB/cloud.png");
+    for(let i=0; i<5; i++){
+      const cloudMat = new THREE.SpriteMaterial({ map: cloudTexture, transparent:true, opacity:0.4 });
+      const cloud = new THREE.Sprite(cloudMat);
+      cloud.position.set((Math.random()-0.5)*10, Math.random()*4, -8);
+      cloud.scale.set(5,3,1);
+      scene.add(cloud);
+      function animateCloud(){
+        cloud.position.x += 0.002;
+        if(cloud.position.x > 6) cloud.position.x = -6;
+        requestAnimationFrame(animateCloud);
+      }
+      animateCloud();
+    }
+
+    // Animate loop
+    function animate(){
+      requestAnimationFrame(animate);
+      heart.rotation.y += 0.01;
+      heart.rotation.x += 0.003;
+      const scale = 1 + 0.05*Math.sin(Date.now()*0.005);
+      heart.scale.set(scale, scale, scale);
+      moon.rotation.y += 0.001;
+      fireflies.forEach(f=>{
+        f.sprite.position.x += (Math.random()-0.5)*f.speed;
+        f.sprite.position.y += (Math.random()-0.5)*f.speed;
+        f.sprite.material.opacity = 0.5 + 0.5*Math.sin(Date.now()*0.002+Math.random());
+      });
+      for(let i=fireworks.length-1; i>=0; i--){
+        const fw = fireworks[i];
+        fw.userData.life += 0.02;
+        fw.scale.multiplyScalar(1.02);
+        fw.material.opacity -= 0.01;
+        if(fw.material.opacity <= 0){
+          scene.remove(fw);
+          fireworks.splice(i,1);
+        }
+      }
+      renderer.render(scene,camera);
+    }
+    animate();
+
+    // Hearts rơi
+    setInterval(()=>{
+      let heartEl = document.createElement("div");
+      heartEl.className="heart";
+      heartEl.innerHTML="❤️";
+      heartEl.style.left = Math.random()*95+"vw";
+      heartEl.style.top = "-50px";
+      heartEl.style.fontSize = (20+Math.random()*30)+"px";
+      heartEl.style.color = ["#ff66aa","#ff3333","#ff99cc","#ff66ff"][Math.floor(Math.random()*4)];
+      document.body.appendChild(heartEl);
+      setTimeout(()=>heartEl.remove(),6000);
+    },150);
+
+    // Images rơi
+    const imgSources = [
+      "./anh/a1.jpg","./anh/a2.jpg","./anh/a3.jpg","./anh/a4.jpg","./anh/a5.jpg",
+      "./anh/a6.jpg","./anh/a7.jpg","./anh/a8.jpg","./anh/a9.jpg","./anh/a10.jpg","./anh/a11.jpg"
+    ];
+    imgSources.forEach((src, index) => {
+      for (let i = 0; i < 2; i++) {
+        setTimeout(() => {
+          let img = document.createElement("img");
+          img.className = "falling-img";
+          img.src = src;
+          img.style.left = Math.random() * 90 + "vw";
+          img.style.top = "-80px";
+          img.style.width = (100 + Math.random() * 80) + "px";
+          document.body.appendChild(img);
+          setTimeout(() => img.remove(), 7000);
+        }, (index * 2000) + (i * 10000));
+      }
+    });
+
+    // Sao nhấp nháy nền
+    for(let i=0;i<100;i++){
+      let star = document.createElement("div");
+      star.className = "star";
+      star.style.width = star.style.height = Math.random()*3+"px";
+      star.style.top = Math.random()*100+"vh";
+      star.style.left = Math.random()*100+"vw";
+      document.body.appendChild(star);
+    }
+  </script>
+</body>
+</html>
