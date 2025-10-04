@@ -132,7 +132,7 @@
 
 <!-- Nhạc nền -->
 <audio id="bg-music" loop>
-  <source src="nhac.mp3" type="audio/mp3">
+  <source src="ms/nhac.mp3" type="audio/mp3">
 </audio>
 
 <!-- Three.js -->
@@ -227,7 +227,8 @@ const haloTexture = new THREE.TextureLoader().load("https://threejs.org/examples
 const halo = new THREE.Sprite(new THREE.SpriteMaterial({
   map: haloTexture, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending
 }));
-halo.scale.set(9, 9, 1);
+halo.scale.set(7, 7, 1);
+
 heartGroup.add(halo);
 
 // Orbit hạt bay quanh tim
@@ -272,11 +273,12 @@ function wowHeartVisualizer() {
   heartGroup.scale.set(scale, scale, scale);
 
   const colorHue = (avg * 360) % 360;
-  const color = new THREE.Color(`hsl(${colorHue}, 100%, 60%)`);
+  const color = new THREE.Color(`hsl(${colorHue}, 80%, 40%)`);
   heartCore.material.color = heartAura.material.color = color;
   halo.material.color = color;
 
-  halo.material.opacity = 0.5 + avg * 0.7;
+  halo.material.opacity = 0.3 + avg * 0.4;
+
 
   orbitGroup.children.forEach(p => {
     p.userData.angle += p.userData.speed;
